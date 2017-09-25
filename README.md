@@ -6,3 +6,9 @@ See how many coins you have and how much they value with data from many sources.
 - Bittrex（币种和余额查询）
 - Poloniex（币种和余额查询）
 - CoinmarketCap（查询价格）
+
+## TODO
+- 添加容错处理、完善逻辑
+- 以图形展示结果
+- 写成web服务
+- 写成微信公众号服务
