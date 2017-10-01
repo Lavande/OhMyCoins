@@ -1,0 +1,101 @@
+<html>
+<head>
+	<title>Oh my coins!</title>
+	<script src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.0/Chart.min.js'></script>
+	<script src='static/palette.js'></script>
+
+</head>
+
+<body>
+
+<div>
+<h1 align="center">Raw Data</h1>
+<h2 align="center">Capital:</h2>
+{{capital}}
+<h2 align="center">Coins:</h2>
+{{mycoins}}
+</div>
+
+<h1 align="center">币种价值占比</h1>
+<canvas id="pie" width=350px></canvas>
+<script>
+	var piectx = document.getElementById("pie").getContext("2d");
+	var bgcl = palette('tol-dv', {{pie_length}}).map(function(hex) {return '#' + hex});
+
+	var pieData = {
+		datasets: [{
+			data: [{% for i in pie_values %}
+				{{i}},
+				{% endfor %}],
+			backgroundColor: bgcl
+		}],
+
+		labels: [{% for i in pie_labels %}
+				"{{i}}",
+				{% endfor %}]
+	};
+	
+	var pieOptions = {
+		maintainAspectRatio: false,
+		tooltips: {
+			callbacks: {
+				label: function(tooltipItem, data) {
+					var allData = data.datasets[tooltipItem.datasetIndex].data;
+					var tooltipLabel = data.labels[tooltipItem.index];
+					var tooltipData = allData[tooltipItem.index];
+					var total = 0;
+					for (var i in allData) {
+						total += allData[i];
+					}
+					var tooltipPercentage = Math.round((tooltipData / total) * 100);
+					return tooltipLabel + ': ' + tooltipData + ' (' + tooltipPercentage + '%)';
+				}
+			}
+		}
+	}
+
+
+	var myChart = new Chart(piectx, {
+		type: 'pie',
+		data: pieData,
+		// options: pieOptions
+	});
+ 
+</script>
+
+<h1 align="center">资产分布详情</h1>
+<canvas id="bar" width=350px></canvas>
+<script>
+	var barctx = document.getElementById("bar").getContext("2d");
+	var bgcl = palette('tol-dv', {{bar_length}}).map(function(hex) {return '#' + hex});
+
+	var barData = {
+		datasets: [{
+			label: "CNY Value",
+			data: [{% for i in bar_values %}
+				{{i}},
+				{% endfor %}],
+			backgroundColor: bgcl
+		}],
+
+		labels: [{% for i in bar_labels %}
+				"{{i}}",
+				{% endfor %}]
+	};
+
+	var barOptions = {
+		maintainAspectRatio: false
+	}
+
+	var myBarChart = new Chart(barctx, {
+		type: 'horizontalBar',
+		data: barData,
+		// options: barOptions
+	});
+ 
+ 
+</script>
+</div>
+
+</body>
+</html>
