@@ -11,16 +11,22 @@ from datetime import datetime
 from bs4 import BeautifulSoup
 
 
-#INPUT Ether addresses here you want to watch
-addresses = ['', '', '']
-#INPUT api details of bittrex and poloniex
+##CONFIG SECTION##
+##Leave it for blank if you don't want to include data from that source
+#Ether addresses that you'd like to watch
+addresses = []
+#Get this from Bittrex pannel. Watch-only permmision recommended
 bittrex_apikey = ''
 bittrex_apisecret = b''
+#Get this from Poloniex pannel. Watch-only permmision recommended
 poloniex_apikey = ''
 poloniex_apisecret = b''
 
-
+#Mannually add balance from other sources that this program has not covered yet
+#E.g.: mycoins = {'BTC': 5, 'ETH': 10}
 mycoins = {}
+
+
 
 def dict_add(a, b):
     for k2, v2 in b.items():    
@@ -31,7 +37,6 @@ def dict_add(a, b):
     return a
 
 
-#Etherscan
 def get_ether(address):
     url = 'https://etherscan.io/address/' + address
     r = requests.get(url)
@@ -50,12 +55,7 @@ def get_ether(address):
         assets[token] = amount
     return assets
 
-for address in addresses:
-    assets = get_ether(address)
-    mycoins = dict_add(mycoins, assets)
-    
 
-#Bittrex
 def get_bittrex(apikey, apisecret):
     nonce = str(datetime.timestamp(datetime.now()))
     url = 'https://bittrex.com/api/v1.1/account/getbalances?apikey={0}&nonce={1}'.format(apikey,nonce)
@@ -73,12 +73,7 @@ def get_bittrex(apikey, apisecret):
         assets[token] = amount
     return assets
 
-assets = get_bittrex(bittrex_apikey, bittrex_apisecret)
-mycoins = dict_add(mycoins, assets)
 
-
-
-#Poloniex
 def get_poloniex(apikey, apisecret):
     nonce_counter = count(int(time.time() * 1000))    
     url = 'https://poloniex.com/tradingApi'
@@ -101,27 +96,46 @@ def get_poloniex(apikey, apisecret):
         assets[k] = onOrders + available
     return assets
 
-assets = get_poloniex(poloniex_apikey, poloniex_apisecret)
-mycoins = dict_add(mycoins, assets)
 
-print(mycoins)
+def get_price(coins):
+    capital = {}
+    
+    url = 'https://api.coinmarketcap.com/v1/ticker/?convert=CNY&limit=100'
+    r = requests.get(url)
+    prices = r.json()
+    
+    for i in prices:
+        token = i['symbol']
+        if token in coins.keys():
+            capital[token] = float(i['price_cny']) * coins[token]
+
+    return capital
 
 
-
-#coinmarketcap
-capital = {}
-
-url = 'https://api.coinmarketcap.com/v1/ticker/?convert=CNY&limit=100'
-r = requests.get(url)
-prices = r.json()
-
-for i in prices:
-    token = i['symbol']
-    if token in mycoins.keys():
-        capital[token] = float(i['price_cny']) * mycoins[token]
+def fetch_data(mycoins):
+    #Etherscan
+    if addresses != []:
+        for address in addresses:
+            assets = get_ether(address)
+            mycoins = dict_add(mycoins, assets)
         
-sum = 0        
-for k,v in capital.items():
-    sum += v
-print(capital)
-print('Only calculating coins with market capital in top 100.\nSUM in CNY: '+str(sum))
+    #Bittrex 
+    if bittrex_apikey != '':
+        assets = get_bittrex(bittrex_apikey, bittrex_apisecret)
+        mycoins = dict_add(mycoins, assets)
+    
+    #Poloniex
+    if poloniex_apikey != '':
+        assets = get_poloniex(poloniex_apikey, poloniex_apisecret)
+        mycoins = dict_add(mycoins, assets)
+    
+    print(mycoins)
+    
+    #coinmarketcap
+    capital = get_price(mycoins)
+    print(capital)
+    return (capital, mycoins)
+    
+    
+if __name__ == '__main__':
+    fetch_data(mycoins)
