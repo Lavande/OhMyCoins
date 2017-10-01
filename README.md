@@ -7,8 +7,16 @@ See how many coins you have and how much they value with data from many sources.
 - Poloniex（币种和余额查询）
 - CoinmarketCap（查询价格）
 
+## 简介
+### 原理
+根据提供的地址去etherscan查询余额，根据API查询B网和P网的余额，最后到Coinmarketcap查询所有币种当前CNY价格，最后用chartjs生成图表，用flask展示网页。
+### 依赖
+flask, beautiful soup 4
+### 运行
+`python3 app,py`
+然后浏览器打开 localhost:5000 需要等一会儿，数据抓好后即显示图表
+
 ## TODO
-- 添加容错处理、完善逻辑
-- 以图形展示结果
-- 写成web服务
-- 写成微信公众号服务
+- 急需一个好看的前端！！（对，我的意思好像是需要一个长得好看的前端妹子）
+- 添加更多数据来源，完善逻辑和容错处理
+- （也许）写成Web服务或微信公众号服务
