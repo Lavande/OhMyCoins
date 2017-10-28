@@ -12,11 +12,14 @@
 <h1 align="center">Raw Data</h1>
 <h2 align="center">Capital:</h2>
 {{capital}}
-<h2 align="center">Coins:</h2>
+<h2 align="center">All Coins:</h2>
 {{mycoins}}
+<h2 align="center">New or invalid coins that have no prices:</h2>
+{{coin_no_value}}
 </div>
 
 <h1 align="center">币种价值占比</h1>
+<h2 align="center">总价值: {{total}}</h2>
 <canvas id="pie" width=350px></canvas>
 <script>
 	var piectx = document.getElementById("pie").getContext("2d");
