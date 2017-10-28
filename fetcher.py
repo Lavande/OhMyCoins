@@ -5,27 +5,12 @@ import requests
 import hashlib
 import hmac
 import time
+import json
 import urllib.parse
 from itertools import count
 from datetime import datetime
 from bs4 import BeautifulSoup
-
-
-##CONFIG SECTION##
-##Leave it for blank if you don't want to include data from that source
-#Ether addresses that you'd like to watch
-addresses = []
-#Get this from Bittrex pannel. Watch-only permmision recommended
-bittrex_apikey = ''
-bittrex_apisecret = b''
-#Get this from Poloniex pannel. Watch-only permmision recommended
-poloniex_apikey = ''
-poloniex_apisecret = b''
-
-#Mannually add balance from other sources that this program has not covered yet
-#E.g.: mycoins = {'BTC': 5, 'ETH': 10}
-mycoins = {}
-
+import config as cfg
 
 
 def dict_add(a, b):
@@ -97,38 +82,75 @@ def get_poloniex(apikey, apisecret):
     return assets
 
 
+def get_bitfinex(apikey, apisecret):
+    baseurl = 'https://api.bitfinex.com/'
+    path = 'v2/auth/r/wallets'
+    nonce = str(datetime.timestamp(datetime.now()))
+    body = {}
+    rawBody = json.dumps(body)
+    signature = "/api/" + path + nonce + rawBody
+    signature = hmac.new(apisecret, signature.encode('utf-8'), hashlib.sha384).hexdigest()
+    headers = {
+                "bfx-nonce": nonce,
+                "bfx-apikey": apikey,
+                "bfx-signature": signature,
+                "content-type": "application/json"
+            }
+    r = requests.post(baseurl+path, headers=headers, data=rawBody, verify=True)
+    
+    balance = r.json()
+    assets = {}
+    for i in balance:
+        token = i[1]
+        amount = i[2]
+        if amount == 0: continue
+        assets[token] = amount
+    return assets
+
+
 def get_price(coins):
     capital = {}
     
-    url = 'https://api.coinmarketcap.com/v1/ticker/?convert=CNY&limit=100'
+    url = 'https://api.coinmarketcap.com/v1/ticker/?convert=CNY'
     r = requests.get(url)
     prices = r.json()
     
     for i in prices:
         token = i['symbol']
+        #TODO: workaround for different use of symbols across platforms, but there must be a neat way!
+        if i['id'] == 'iota': token = 'IOT'
+        if i['id'] == 'kingn-coin': token = 'KNGC'
+        if i['id'] == 'cryptonex': token = 'CNXCOIN'
         if token in coins.keys():
             capital[token] = float(i['price_cny']) * coins[token]
 
     return capital
 
 
-def fetch_data(mycoins):
+def fetch_data():
+    mycoins = cfg.other_bl
+    
     #Etherscan
-    if addresses != []:
-        for address in addresses:
+    if cfg.addresses != []:
+        for address in cfg.addresses:
             assets = get_ether(address)
             mycoins = dict_add(mycoins, assets)
         
     #Bittrex 
-    if bittrex_apikey != '':
-        assets = get_bittrex(bittrex_apikey, bittrex_apisecret)
+    if cfg.bittrex_apikey != '':
+        assets = get_bittrex(cfg.bittrex_apikey, cfg.bittrex_apisecret)
         mycoins = dict_add(mycoins, assets)
     
     #Poloniex
-    if poloniex_apikey != '':
-        assets = get_poloniex(poloniex_apikey, poloniex_apisecret)
+    if cfg.poloniex_apikey != '':
+        assets = get_poloniex(cfg.poloniex_apikey, cfg.poloniex_apisecret)
         mycoins = dict_add(mycoins, assets)
     
+    #Bitfinex
+    if cfg.bitfinex_apikey != '':
+        assets = get_bitfinex(cfg.bitfinex_apikey, cfg.bitfinex_apisecret)
+        mycoins = dict_add(mycoins, assets)
+        
     print(mycoins)
     
     #coinmarketcap
@@ -138,4 +160,4 @@ def fetch_data(mycoins):
     
     
 if __name__ == '__main__':
-    fetch_data(mycoins)
+    fetch_data()
