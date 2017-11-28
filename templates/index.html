@@ -9,17 +9,30 @@
 <body>
 
 <div>
-<h1 align="center">Raw Data</h1>
-<h2 align="center">Capital:</h2>
-{{capital}}
-<h2 align="center">All Coins:</h2>
-{{mycoins}}
-<h2 align="center">New or invalid coins that have no prices:</h2>
-{{coin_no_value}}
+<h1 align="center">Balance and Prices</h1>
+<table align="center">
+	<thead>
+		<tr>
+			<th>Token</th>
+			<th>Price</th>
+			<th>Amount</th>
+			<th>Value</th>
+		</tr>
+	</thead>
+	<tbody>
+		{% for tr in table %}
+			<tr>
+			{% for td in tr %}
+				<td>{{td}}</td>
+			{% endfor %}
+			</tr>
+		{% endfor %}
+	</tbody>
+</table>
 </div>
 
-<h1 align="center">币种价值占比</h1>
-<h2 align="center">总价值: {{total}}</h2>
+<h1 align="center">Coin Pie ;-)</h1>
+<h2 align="center">Total Value: {{total}}</h2>
 <canvas id="pie" width=350px></canvas>
 <script>
 	var piectx = document.getElementById("pie").getContext("2d");
@@ -66,7 +79,7 @@
  
 </script>
 
-<h1 align="center">资产分布详情</h1>
+<h1 align="center">Ranking by value</h1>
 <canvas id="bar" width=350px></canvas>
 <script>
 	var barctx = document.getElementById("bar").getContext("2d");
