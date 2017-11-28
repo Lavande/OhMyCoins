@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import sys
 import requests
 import hashlib
 import hmac
 import time
 import json
+import cfscrape
 import urllib.parse
 from itertools import count
 from datetime import datetime
@@ -24,7 +26,9 @@ def dict_add(a, b):
 
 def get_ether(address):
     url = 'https://etherscan.io/address/' + address
-    r = requests.get(url)
+    #r = requests.get(url)
+    scraper = cfscrape.create_scraper()
+    r = scraper.get(url)
     soup = BeautifulSoup(r.text, 'html.parser')
     eth = soup.find_all('table')[0].find_all('td')[1].text.replace('\n','').split(' ')[0]
     eth = float(eth.replace(',', ''))
@@ -111,7 +115,7 @@ def get_bitfinex(apikey, apisecret):
 def get_price(coins):
     capital = {}
     
-    url = 'https://api.coinmarketcap.com/v1/ticker/?convert=CNY'
+    url = 'https://api.coinmarketcap.com/v1/ticker/?convert=CNY&limit=0'
     r = requests.get(url)
     prices = r.json()
     
@@ -121,6 +125,7 @@ def get_price(coins):
         if i['id'] == 'iota': token = 'IOT'
         if i['id'] == 'kingn-coin': token = 'KNGC'
         if i['id'] == 'cryptonex': token = 'CNXCOIN'
+        if i['id'] == 'latoken': token = 'LAToken'
         if token in coins.keys():
             capital[token] = float(i['price_cny']) * coins[token]
 
@@ -151,12 +156,24 @@ def fetch_data():
         assets = get_bitfinex(cfg.bitfinex_apikey, cfg.bitfinex_apisecret)
         mycoins = dict_add(mycoins, assets)
         
-    print(mycoins)
+    #print(mycoins)
     
     #coinmarketcap
     capital = get_price(mycoins)
-    print(capital)
-    return (capital, mycoins)
+    total = 0
+    for i in capital.keys():
+        total += capital[i]
+        capital[i] = int(capital[i])
+    total = int(total)
+    #print(capital)
+    
+    #Write log
+    with open(sys.path[0] + '/ohmycoin.log', 'a') as f:
+        f.write(str(datetime.today()) + '\tTOTAL: ' + str(total) + '\n')
+        f.write('COINS: ' + str(mycoins) + '\n')
+        f.write('CAPITAL: ' + str(capital) + '\n\n')
+        
+    return (total, capital, mycoins)
     
     
 if __name__ == '__main__':
