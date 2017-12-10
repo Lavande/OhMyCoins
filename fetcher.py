@@ -35,9 +35,9 @@ def get_ether(address):
     assets = {'ETH': eth}
     balancelist = soup.find(id='balancelist')
     for i in balancelist.find_all('li')[:-1]:
-        br = i.a.br.text.split('@')[0]
-        token = br.split(' ')[1]
-        amount = float(br.split(' ')[0].replace(',', ''))
+        item = i.a.br.next_sibling
+        token = item.split(' ')[1]
+        amount = float(item.split(' ')[0].replace(',', ''))
         if token in assets.keys():
             print('Warning: Duplicated token symbol {0}. Using the first one.'.format(token))
             continue
@@ -126,6 +126,7 @@ def get_price(coins):
         if i['id'] == 'kingn-coin': token = 'KNGC'
         if i['id'] == 'cryptonex': token = 'CNXCOIN'
         if i['id'] == 'latoken': token = 'LAToken'
+        if i['id'] == 'propy': token = 'PROP'
         if token in coins.keys():
             capital[token] = float(i['price_cny']) * coins[token]
 
