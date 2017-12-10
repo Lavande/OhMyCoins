@@ -41,15 +41,16 @@ def chart():
         row = []
         row.append(i)
         if i in capital.keys():
-            row.append('{0:.2f}'.format(capital[i]/mycoins[i]))
+            row.append('{0:.4f}'.format(capital[i]/mycoins[i]))
             row.append(mycoins[i])
-            row.append('{0:.2f}'.format(capital[i]))
+            row.append(capital[i])
             table.insert(0, row)
         else:
-            row.append(None)
+            row.append(0)
             row.append(mycoins[i])
-            row.append(None)
+            row.append(0)
             table.append(row)
+    table = sorted(table, key=itemgetter(3), reverse=True)
         
     (pie_values, pie_labels, pie_length) = pie(capital)
     (bar_values, bar_labels, bar_length) = bar(capital)
