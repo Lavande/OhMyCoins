@@ -10,14 +10,19 @@ See how many coins you have and how much they value with data from many sources.
 
 ## 简介
 ### 原理
-根据提供的地址去etherscan查询余额，根据API查询B网和P网的余额，最后到Coinmarketcap查询所有币种当前CNY价格，最后用chartjs生成图表，用flask展示网页。
-### 依赖
-flask, beautiful soup 4, cfscrape
-### 运行
-首先在config.py中设置好各项参数，包括需要查询的eth地址、交易所api key和secret等，然后运行：
-`python3 app,py`
-然后浏览器打开 localhost:5001 需要等一会儿，数据抓好后即显示图表
-
+根据提供的地址去etherscan查询余额，通过API查询交易所账户的余额，最后到Coinmarketcap查询所有币种当前CNY价格，最后用chartjs生成图表，用flask展示网页。
+### 使用
+首先安装依赖：
+```
+pip3 install flask beautifulsoup4 cfscrape
+```
+然后在config.py中设置好各项参数，包括需要查询的eth地址、交易所api key和secret等，设置好后运行（这一步建议配合proxychains从梯子走，因为有些交易所要被墙了）：
+```
+python3 app.py
+```
+然后浏览器打开 localhost:5001 需要等大概半分钟，数据抓好后即显示图表
+### 效果图
+![screenshot](static/screenshot.png)
 ## TODO
 - 需要一个好看的前端！！（对，我的意思好像是需要一个长得好看的前端妹子）
 - 前端交互：先显示页面，然后再爬取数据，完成后展示
