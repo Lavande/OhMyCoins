@@ -34,7 +34,9 @@ def get_ether(address):
     eth = float(eth.replace(',', ''))
     assets = {'ETH': eth}
     balancelist = soup.find(id='balancelist')
-    for i in balancelist.find_all('li')[:-1]:
+    li = balancelist.find_all('li')
+    if len(li) > 1: li = li[:-1]
+    for i in li:
         item = i.a.br.next_sibling
         token = item.split(' ')[1]
         amount = float(item.split(' ')[0].replace(',', ''))
