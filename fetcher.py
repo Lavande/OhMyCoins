@@ -9,6 +9,7 @@ import time
 import json
 import cfscrape
 import urllib.parse
+from uuid import uuid1
 from itertools import count
 from datetime import datetime
 from bs4 import BeautifulSoup
@@ -114,6 +115,26 @@ def get_bitfinex(apikey, apisecret):
     return assets
 
 
+def get_bigone(apikey):
+    url = 'https://api.big.one/accounts'
+    UUID = str(uuid1())
+    headers = {'Accept': 'application/json',
+                'User-Agent': 'ohmycoins',
+                'Authorization': 'Bearer ' + apikey,
+                'Big-Device-Id': UUID}
+    
+    r = requests.get(url, headers=headers)
+    
+    balance = r.json()['data']
+    assets = {}
+    for i in balance:
+        token = i['account_type']
+        amount = float(i['active_balance'])
+        if amount == 0: continue
+        assets[token] = amount
+    return assets
+
+
 def get_price(coins):
     capital = {}
     
@@ -129,6 +150,7 @@ def get_price(coins):
         if i['id'] == 'cryptonex': token = 'CNXCOIN'
         if i['id'] == 'latoken': token = 'LAToken'
         if i['id'] == 'propy': token = 'PROP'
+        if i['id'] == 'selfkey': token = 'SKEY'
         if token in coins.keys():
             capital[token] = float(i['price_cny']) * coins[token]
 
@@ -159,6 +181,10 @@ def fetch_data():
         assets = get_bitfinex(cfg.bitfinex_apikey, cfg.bitfinex_apisecret)
         mycoins = dict_add(mycoins, assets)
         
+    #Bigone
+    if cfg.bigone_apikey != '':
+        assets = get_bigone(cfg.bigone_apikey)
+        mycoins = dict_add(mycoins, assets)
     #print(mycoins)
     
     #coinmarketcap
