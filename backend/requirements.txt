@@ -1,0 +1,6 @@
+requests==2.18.4
+Flask_Cors==3.0.4
+cfscrape==1.9.1
+jieba==0.39
+Flask==0.12.2
+beautifulsoup4==4.6.0
