@@ -36,7 +36,8 @@ def get_ether(address):
     assets = {'ETH': eth}
     balancelist = soup.find(id='balancelist')
     li = balancelist.find_all('li')
-    if len(li) > 1: li = li[:-1]
+    #TODO: Fix the problem here. Is it always right to cut [0] and [-1] out of 'li'?
+    if len(li) > 1: li = li[1:-1]
     for i in li:
         item = i.a.br.next_sibling
         token = item.split(' ')[1]
@@ -137,6 +138,7 @@ def get_bigone(apikey):
 
 def get_price(coins):
     capital = {}
+    price = {}
     
     url = 'https://api.coinmarketcap.com/v1/ticker/?convert=CNY&limit=0'
     r = requests.get(url)
@@ -153,8 +155,8 @@ def get_price(coins):
         if i['id'] == 'selfkey': token = 'SKEY'
         if token in coins.keys():
             capital[token] = float(i['price_cny']) * coins[token]
-
-    return capital
+            price[token] = float(i['price_cny'])
+    return (price, capital)
 
 
 def fetch_data():
@@ -188,7 +190,7 @@ def fetch_data():
     #print(mycoins)
     
     #coinmarketcap
-    capital = get_price(mycoins)
+    (price, capital) = get_price(mycoins)
     total = 0
     for i in capital.keys():
         total += capital[i]
@@ -202,7 +204,7 @@ def fetch_data():
         f.write('COINS: ' + str(mycoins) + '\n')
         f.write('CAPITAL: ' + str(capital) + '\n\n')
         
-    return (total, capital, mycoins)
+    return (total, price, mycoins, capital)
     
     
 if __name__ == '__main__':
