@@ -3,13 +3,12 @@
 
 
 import fetcher
-import segments
-import relation
+#import segments
 import json
-from bs4 import BeautifulSoup
+#from bs4 import BeautifulSoup
 import config as cfg
 from operator import itemgetter
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
@@ -58,18 +57,14 @@ def chart():
         
     piedata = pie(capital)
 
-    chartsdata = relation.allPearson()
-
-    cloud = segments.parseData()
+#TODO: Crawl news and generate word cloud
+#    cloud = segments.parseData()
     clouddata = []
-    for i in cloud.keys():
-        clouddata.append({"text": i, "weight": cloud[i]})
+#    for i in cloud.keys():
+#        clouddata.append({"text": i, "weight": cloud[i]})
 
 
-    return jsonify({"Table": table, "Total": total, "Pie": piedata, "Charts": chartsdata, "Cloud": clouddata,
-"Sentiment":
-	{}
-})
+    return jsonify({"Table": table, "Total": total, "Pie": piedata, "Cloud": clouddata})
 
 if __name__ == '__main__':
     app.run(debug=True, port=5050, host='0.0.0.0')

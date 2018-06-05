@@ -33,19 +33,7 @@
         <div class="pie_pic" id="pie_pic"></div>
       </div>
     </div>
-    <!-- 折线图 -->
-    <div class="block">
-      <h1 class="title">币价与开发进度相关信息</h1>
-      <!-- 折线图1 -->
-      <div class="line_pic" id="line_pic1"></div>
-      <p class="line_pic_txt">相关系数：{{this.btcxs}}</p>
-      <!-- 折线图2 -->
-      <div class="line_pic" id="line_pic2"></div>
-      <p class="line_pic_txt">相关系数：{{this.eosxs}}</p>
-      <!-- 折线图3 -->
-      <div class="line_pic" id="line_pic3"></div>
-      <p class="line_pic_txt">相关系数：{{this.ethxs}}</p>
-    </div>
+    <!-- 词云 -->
     <div class="block">
       <div class="left_con">
         <div class="title">词云</div>
@@ -90,17 +78,10 @@ export default {
         item.weight=item.weight*10;
       });
       this.pieData=this.data.Pie;
-      this.chartsData=this.data.Charts;
-      this.btcxs=this.chartsData.BTC[2];
-      this.eosxs=this.chartsData.EOS[2];
-      this.ethxs=this.chartsData.ETH[2];
     },
     //初始化图标
     initAllPic(){
       this.drawPie();
-      this.drawLine1();
-      this.drawLine2();
-      this.drawLine3();
       this.wordCloud()
     },
     //饼图
@@ -127,201 +108,6 @@ export default {
                         shadowColor: 'rgba(0, 0, 0, 0.5)'
                     }
                 }
-            }
-        ]
-      });
-    },
-    drawLine1(){
-      // 基于准备好的dom，初始化echarts实例
-      let myChart = this.$echarts.init(document.getElementById('line_pic1'))
-      // 绘制图表
-      myChart.setOption({
-        title : {
-          text: 'BTC',
-          left:'10'
-        },
-        tooltip: {
-          trigger: 'axis',
-          axisPointer: {
-              type: 'cross',
-              crossStyle: {
-                  color: '#999'
-              }
-          }
-        },
-        legend: {
-            top:'10%',
-            data:['价格','代码提交次数']
-        },
-        grid: {
-            left: '3%',
-            right: '3%',
-            bottom: '3%',
-            containLabel: true
-        },
-        xAxis: {
-            type: 'category',
-            show:false
-        },
-        yAxis: [
-          {
-              type: 'value',
-              name: '价格',
-              axisLabel: {
-                  formatter: '{value} $'
-              }
-          },
-          {
-              type: 'value',
-              name: '次数',
-              axisLabel: {
-                  formatter: '{value} 次'
-              }
-          }
-        ],
-        series: [
-            {
-                name:'价格',
-                type:'line',
-                stack: '总量',
-                data:this.chartsData.BTC[0]
-            },
-            {
-                name:'代码提交次数',
-                type:'line',
-                stack: '总量',
-                yAxisIndex: 1,
-                data:this.chartsData.BTC[1]
-            }
-        ]
-      });
-    },
-    drawLine2(){
-      // 基于准备好的dom，初始化echarts实例
-      let myChart = this.$echarts.init(document.getElementById('line_pic2'))
-      // 绘制图表
-      myChart.setOption({
-        title : {
-          text: 'EOS',
-          left:'10'
-        },
-        tooltip: {
-          trigger: 'axis',
-          axisPointer: {
-              type: 'cross',
-              crossStyle: {
-                  color: '#999'
-              }
-          }
-        },
-        legend: {
-            top:'10%',
-            data:['价格','代码提交次数']
-        },
-        grid: {
-            left: '3%',
-            right: '3%',
-            bottom: '3%',
-            containLabel: true
-        },
-        xAxis: {
-            type: 'category',
-            show:false
-        },
-        yAxis: [
-          {
-              type: 'value',
-              name: '价格',
-              axisLabel: {
-                  formatter: '{value} $'
-              }
-          },
-          {
-              type: 'value',
-              name: '次数',
-              axisLabel: {
-                  formatter: '{value} 次'
-              }
-          }
-        ],
-        series: [
-            {
-                name:'价格',
-                type:'line',
-                stack: '总量',
-                data:this.chartsData.EOS[0]
-            },
-            {
-                name:'代码提交次数',
-                type:'line',
-                stack: '总量',
-                yAxisIndex: 1,
-                data:this.chartsData.EOS[1]
-            }
-        ]
-      });
-    },
-    drawLine3(){
-      // 基于准备好的dom，初始化echarts实例
-      let myChart = this.$echarts.init(document.getElementById('line_pic3'))
-      // 绘制图表
-      myChart.setOption({
-        title : {
-          text: 'ETH',
-          left:'10'
-        },
-        tooltip: {
-          trigger: 'axis',
-          axisPointer: {
-              type: 'cross',
-              crossStyle: {
-                  color: '#999'
-              }
-          }
-        },
-        legend: {
-            top:'10%',
-            data:['价格','代码提交次数']
-        },
-        grid: {
-            left: '3%',
-            right: '3%',
-            bottom: '3%',
-            containLabel: true
-        },
-        xAxis: {
-            type: 'category',
-            show:false
-        },
-        yAxis: [
-          {
-              type: 'value',
-              name: '价格',
-              axisLabel: {
-                  formatter: '{value} $'
-              }
-          },
-          {
-              type: 'value',
-              name: '次数',
-              axisLabel: {
-                  formatter: '{value} 次'
-              }
-          }
-        ],
-        series: [
-            {
-                name:'价格',
-                type:'line',
-                stack: '总量',
-                data:this.chartsData.ETH[0]
-            },
-            {
-                name:'代码提交次数',
-                type:'line',
-                stack: '总量',
-                yAxisIndex: 1,
-                data:this.chartsData.ETH[1]
             }
         ]
       });
