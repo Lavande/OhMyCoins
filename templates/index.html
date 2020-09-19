@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<title>Oh my coins!</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
+	<script src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.0/Chart.min.js'></script>
+	<script src='static/palette.js'></script>
+</head>
+
+
+<body>
+
+<div class="container-fluid">
+	<div class="row justify-content-md-center" style="background-color: #563d7c;">
+		<h1 style="color: white;">Oh my coins!</h1>
+	</div>
+</div>
+<hr>
+<div class="container-fluid">
+
+
+	<div class="row">
+
+	<div class="col">
+	</div>
+	<div class="col-4">
+		<h2 align="center">Balance and Prices</h2>
+		<table class="table" align="center">
+			<thead>
+				<tr>
+					<th>Token</th>
+					<th>Price</th>
+					<th>Amount</th>
+					<th>Value</th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for tr in table %}
+					<tr>
+					{% for td in tr %}
+						<td>{{td}}</td>
+					{% endfor %}
+					</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+	</div>
+
+	<div class="col-6">
+		<h2 align="center">Coin Pie ;-)</h2>
+		<h5 align="center">Total Value: {{total}}</h5>
+		<canvas id="pie" width=350px></canvas>
+		<script>
+			var piectx = document.getElementById("pie").getContext("2d");
+			var bgcl = palette('tol-dv', {{pie_length}}).map(function(hex) {return '#' + hex});
+
+			var pieData = {
+				datasets: [{
+					data: [{% for i in pie_values %}
+						{{i}},
+						{% endfor %}],
+					backgroundColor: bgcl
+				}],
+
+				labels: [{% for i in pie_labels %}
+						"{{i}}",
+						{% endfor %}]
+			};
+			
+			var pieOptions = {
+				maintainAspectRatio: true,
+				tooltips: {
+					callbacks: {
+						label: function(tooltipItem, data) {
+							var allData = data.datasets[tooltipItem.datasetIndex].data;
+							var tooltipLabel = data.labels[tooltipItem.index];
+							var tooltipData = allData[tooltipItem.index];
+							var total = 0;
+							for (var i in allData) {
+								total += allData[i];
+							}
+							var tooltipPercentage = Math.round((tooltipData / total) * 100);
+							return tooltipLabel + ': ' + tooltipData + ' (' + tooltipPercentage + '%)';
+						}
+					}
+				}
+			}
+
+
+			var myChart = new Chart(piectx, {
+				type: 'pie',
+				data: pieData,
+				options: pieOptions
+			});
+		 
+		</script>
+	
+		<hr>
+
+		<h2 align="center">Ranking by value (Logarithmic)</h2>
+		<canvas id="bar" width=350px></canvas>
+		<script>
+			var barctx = document.getElementById("bar").getContext("2d");
+			var bgcl = palette('tol-dv', {{bar_length}}).map(function(hex) {return '#' + hex});
+
+			var barData = {
+				datasets: [{
+					label: "CNY Value",
+					data: [{% for i in bar_values %}
+						{{i}},
+						{% endfor %}],
+					backgroundColor: bgcl
+				}],
+
+				labels: [{% for i in bar_labels %}
+						"{{i}}",
+						{% endfor %}]
+			};
+
+			var barOptions = {
+					scales: {
+					    yAxes: [{
+						type: 'logarithmic',
+						ticks: {
+							callback: function(tick, index, ticks) {
+								return tick.toLocaleString()
+							}
+						}
+					    }]
+					}
+			};
+
+			var myBarChart = new Chart(barctx, {
+				type: 'bar',
+				data: barData,
+				options: barOptions
+			});
+		 
+		 
+		</script>
+	</div>
+	<div class="col">
+	</div>
+
+	</div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
+</body>
+</html>

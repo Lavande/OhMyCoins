@@ -3,6 +3,7 @@
 
 import sys
 import requests
+import jwt
 import hashlib
 import hmac
 import time
@@ -16,6 +17,9 @@ from bs4 import BeautifulSoup
 import config as cfg
 
 
+if cfg.proxies != {}: proxies = cfg.proxies
+
+
 def dict_add(a, b):
     for k2, v2 in b.items():    
         if k2 in a.keys():
@@ -26,26 +30,22 @@ def dict_add(a, b):
 
 
 def get_ether(address):
-    url = 'https://etherscan.io/address/' + address
-    #r = requests.get(url)
-    scraper = cfscrape.create_scraper()
-    r = scraper.get(url)
-    soup = BeautifulSoup(r.text, 'html.parser')
-    eth = soup.find_all('table')[0].find_all('td')[1].text.replace('\n','').split(' ')[0]
-    eth = float(eth.replace(',', ''))
-    assets = {'ETH': eth}
-    balancelist = soup.find(id='balancelist')
-    li = balancelist.find_all('li')
-    #TODO: Fix the problem here. Is it always right to cut [0] and [-1] out of 'li'?
-    if len(li) > 1: li = li[1:-1]
-    for i in li:
-        item = i.a.br.next_sibling
-        token = item.split(' ')[1]
-        amount = float(item.split(' ')[0].replace(',', ''))
+    #This URL just works to circumvent the anti-crawler mechanism but don't know why --!
+    url = 'https://etherscan.io/tokenholdingsHandler.ashx?&a={0}&q=&p=1&f=0&h=0&sort=total_price_usd&order=desc&pUsd24hrs=128.33&pBtc24hrs=0.03389&pUsd=126.74&fav='.format(address)
+    headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
+    r = requests.get(url, headers=headers, proxies=proxies)
+    html = r.json()['layout']
+    soup = BeautifulSoup(html, 'html.parser')
+    balancelist = soup.find_all('tr')
+    assets = {}
+    for i in balancelist:
+        token = i.find_all('td')[2].text
+        amount = float(i.find_all('td')[3].text.replace(',', ''))
         if token in assets.keys():
             print('Warning: Duplicated token symbol {0}. Using the first one.'.format(token))
             continue
         assets[token] = amount
+
     return assets
 
 
@@ -116,56 +116,58 @@ def get_bitfinex(apikey, apisecret):
     return assets
 
 
-def get_bigone(apikey):
-    url = 'https://api.big.one/accounts'
-    UUID = str(uuid1())
-    headers = {'Accept': 'application/json',
-                'User-Agent': 'ohmycoins',
-                'Authorization': 'Bearer ' + apikey,
-                'Big-Device-Id': UUID}
-    
-    r = requests.get(url, headers=headers)
-    
-    balance = r.json()['data']
-    assets = {}
-    for i in balance:
-        token = i['account_type']
-        amount = float(i['active_balance'])
-        if amount == 0: continue
-        assets[token] = amount
-    return assets
-
-
-def get_price(coins):
+def get_price_cg(coins):
     capital = {}
-    price = {}
-    
-    url = 'https://api.coinmarketcap.com/v1/ticker/?convert=CNY&limit=0'
-    r = requests.get(url)
-    prices = r.json()
-    
+    #TODO: support coingecko
+    return capital
+
+
+def get_price_cmc(coins):
+    capital = {}
+    url = 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest'
+    parameters = {
+      'start':'1',
+      'limit':'500',
+      'convert':'CNY'
+    }
+    headers = {
+      'Accepts': 'application/json',
+      'X-CMC_PRO_API_KEY': cfg.cmc_apikey
+    }
+
+    r = requests.get(url, params=parameters, headers=headers)
+    prices = r.json()['data']
+
     for i in prices:
         token = i['symbol']
         #TODO: workaround for different use of symbols across platforms, but there must be a neat way!
-        if i['id'] == 'iota': token = 'IOT'
-        if i['id'] == 'kingn-coin': token = 'KNGC'
-        if i['id'] == 'cryptonex': token = 'CNXCOIN'
-        if i['id'] == 'latoken': token = 'LAToken'
-        if i['id'] == 'propy': token = 'PROP'
-        if i['id'] == 'selfkey': token = 'SKEY'
+        if i['slug'] == 'iota': token = 'IOT'
+        if i['slug'] == 'kingn-coin': token = 'KNGC'
+        if i['slug'] == 'cryptonex': token = 'CNXCOIN'
+        if i['slug'] == 'latoken': token = 'LA'
+        if i['slug'] == 'propy': token = 'PROP'
+        if i['slug'] == 'selfkey': token = 'SKEY'
+        if i['slug'] == 'presearch': token = 'PRSC'
+        if i['slug'] == 'prochain': token = 'PRO'
+        if i['slug'] == 'phoenixcoin': token = 'PHXC'
+        if i['slug'] == 'key': token = 'BHKEY'
+        if i['slug'] == 'airtoken': token = 'AIRT'
+        if i['slug'] == 'eosdac': token = 'eosDAC'
         if token in coins.keys():
-            capital[token] = float(i['price_cny']) * coins[token]
-            price[token] = float(i['price_cny'])
-    return (price, capital)
+            capital[token] = float(i['quote']['CNY']['price']) * coins[token]
+
+    return capital
 
 
-def fetch_data():
+def get_position():
     mycoins = cfg.other_bl
     
     #Etherscan
     if cfg.addresses != []:
         for address in cfg.addresses:
             assets = get_ether(address)
+            print(address)
+            print(str(assets))
             mycoins = dict_add(mycoins, assets)
         
     #Bittrex 
@@ -182,15 +184,25 @@ def fetch_data():
     if cfg.bitfinex_apikey != '':
         assets = get_bitfinex(cfg.bitfinex_apikey, cfg.bitfinex_apisecret)
         mycoins = dict_add(mycoins, assets)
-        
-    #Bigone
-    if cfg.bigone_apikey != '':
-        assets = get_bigone(cfg.bigone_apikey)
-        mycoins = dict_add(mycoins, assets)
-    #print(mycoins)
+
+
+    tempdic = {}
+    for i in mycoins.keys():
+        if mycoins[i] != 0: tempdic[i] = mycoins[i]
+    mycoins = tempdic
+            
+    #Store position in a text file
+    with open(sys.path[0] + '/position.log', 'w') as f:
+        f.write(str(mycoins))
+
+    return None
     
+def get_data():
+    with open(sys.path[0] + '/position.log', 'r') as f:
+        mycoins = json.loads(f.read().replace('\'', '\"'))
+
     #coinmarketcap
-    (price, capital) = get_price(mycoins)
+    capital = get_price_cmc(mycoins)
     total = 0
     for i in capital.keys():
         total += capital[i]
@@ -204,8 +216,5 @@ def fetch_data():
         f.write('COINS: ' + str(mycoins) + '\n')
         f.write('CAPITAL: ' + str(capital) + '\n\n')
         
-    return (total, price, mycoins, capital)
-    
-    
-if __name__ == '__main__':
-    fetch_data()
+    return (total, capital, mycoins)
+
