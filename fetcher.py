@@ -3,21 +3,16 @@
 
 import sys
 import requests
-import jwt
 import hashlib
 import hmac
 import time
 import json
-import cfscrape
 import urllib.parse
 from uuid import uuid1
 from itertools import count
 from datetime import datetime
 from bs4 import BeautifulSoup
 import config as cfg
-
-
-if cfg.proxies != {}: proxies = cfg.proxies
 
 
 def dict_add(a, b):
@@ -31,9 +26,9 @@ def dict_add(a, b):
 
 def get_ether(address):
     #This URL just works to circumvent the anti-crawler mechanism but don't know why --!
-    url = 'https://etherscan.io/tokenholdingsHandler.ashx?&a={0}&q=&p=1&f=0&h=0&sort=total_price_usd&order=desc&pUsd24hrs=128.33&pBtc24hrs=0.03389&pUsd=126.74&fav='.format(address)
+    url = 'https://cn.etherscan.com/tokenholdingsHandler.ashx?&a={0}&q=&p=1&f=0&h=0&sort=total_price_usd&order=desc&pUsd24hrs=128.33&pBtc24hrs=0.03389&pUsd=126.74&fav='.format(address)
     headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
-    r = requests.get(url, headers=headers, proxies=proxies)
+    r = requests.get(url, headers=headers)
     html = r.json()['layout']
     soup = BeautifulSoup(html, 'html.parser')
     balancelist = soup.find_all('tr')
@@ -159,7 +154,7 @@ def get_price_cmc(coins):
     return capital
 
 
-def get_position():
+def refresh_position():
     mycoins = cfg.other_bl
     
     #Etherscan
@@ -197,7 +192,7 @@ def get_position():
 
     return None
     
-def get_data():
+def get_position():
     with open(sys.path[0] + '/position.log', 'r') as f:
         mycoins = json.loads(f.read().replace('\'', '\"'))
 

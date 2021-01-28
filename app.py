@@ -31,13 +31,13 @@ def bar(capital):
 @app.route('/')
 def chart():
     #TODO: This will take long. Need to display sth in the front-end while fetching data
-    refresh_position = input('Refresh position data? (y/N)')
-    if refresh_position.lower() == 'y': fetcher.get_position()
+    refresh_position = input('Refresh position data? (y/N)\nDefault to N, but if it\'s the first time you run this program, please select Y.')
+    if refresh_position.lower() == 'y': fetcher.refresh_position()
 
     try:
-        (total, capital, mycoins) = fetcher.get_data()
+        (total, capital, mycoins) = fetcher.get_position()
     except:
-        print('failed to fetch data!!')
+        print('failed to get position data!!')
         raise
 
 

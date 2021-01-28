@@ -3,11 +3,6 @@
 ## Rename this file to 'config.py' after editing.
 
 
-# Using local proxies. Set it to {} to disable proxies.
-proxies = {'http': 'socks5h://localhost:1080',
-          'https': 'socks5h://localhost:1080'}
-
-
 #You NEED this key to use CMC APIs
 #CoinMarketCap API Key
 cmc_apikey = ''
